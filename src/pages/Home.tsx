@@ -66,9 +66,6 @@ export const Home: React.FC<HomeProps> = ({
               </Avatar>
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{userProfile?.fullname || "Foydalanuvchi"}</Typography>
-                <Typography variant="caption" sx={{ bgcolor: '#F4EBFF', color: 'primary.main', px: 1, py: 0.5, borderRadius: 10, fontWeight: 600 }}>
-                  Bronze League
-                </Typography>
               </Box>
             </Box>
             <Box sx={{ textAlign: 'right' }}>
@@ -80,31 +77,30 @@ export const Home: React.FC<HomeProps> = ({
             </Box>
           </Box>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, pt: 2, borderTop: '1px solid #EAECF0' }}>
-            {(userProfile?.role === 'STUDENT' || userProfile?.role === 'SCHOOL_STUDENT') ? (
-              <Box sx={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', p: 1, bgcolor: '#F9FAFB', borderRadius: 2 }}>
-                {nextProductInfo ? (
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
-                      <b>{nextProductInfo.name}</b> sovg'asini olishga yana <b>{nextProductInfo.remainingCoins} coin</b> yetmayapti. Harakatda davom eting!
-                  </Typography>
-                ) : (
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
-                      Ajoyib! Sizda ko'plab sovg'alarni olish uchun coinlar yetarli.
-                  </Typography>
-                )}
+          <Box sx={{ pt: 2, borderTop: '1px solid #EAECF0' }}>
+            {(userProfile?.role === 'STUDENT' || userProfile?.role === 'SCHOOL_STUDENT' || userProfile?.role === 'TEACHER') ? (
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
+                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', p: 1.5, bgcolor: '#F9FAFB', borderRadius: 2 }}>
+                  {nextProductInfo ? (
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
+                        <b>{nextProductInfo.name}</b> sovg'asini olishga yana <b>{nextProductInfo.remainingCoins} coin</b> yetmayapti. Harakatda davom eting!
+                    </Typography>
+                  ) : (
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
+                        {(userProfile?.role === 'TEACHER') ? "O'z yig'gan coinlaringizga do'kondan qimmatbaho sovg'alar xarid qiling!" : "Ajoyib! Sizda ko'plab sovg'alarni olish uchun coinlar yetarli."}
+                    </Typography>
+                  )}
+                </Box>
+                <Box onClick={() => setActiveTab('shop')} sx={{ minWidth: 80, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 1.5, bgcolor: '#F4EBFF', borderRadius: 2, cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>
+                  <ShoppingBag size={24} color="#7F56D9" />
+                  <Typography variant="caption" sx={{ color: '#7F56D9', fontWeight: 600, mt: 0.5 }}>Do'kon</Typography>
+                </Box>
               </Box>
             ) : (
-              <Box sx={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 1, bgcolor: '#F9FAFB', borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 1.5, bgcolor: '#F9FAFB', borderRadius: 2 }}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
                       {userProfile?.branchName || 'Markaz'} hisobotlari
                   </Typography>
-              </Box>
-            )}
-
-            {(userProfile?.role === 'STUDENT' || userProfile?.role === 'SCHOOL_STUDENT' || userProfile?.role === 'TEACHER') && (
-              <Box onClick={() => setActiveTab('shop')} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 1, cursor: 'pointer', borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-                <ShoppingBag size={20} color="#7F56D9" />
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>Do'kon</Typography>
               </Box>
             )}
           </Box>
