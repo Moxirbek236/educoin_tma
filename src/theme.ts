@@ -18,7 +18,7 @@ export const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 10.4, // roughly 0.65rem
+    borderRadius: 10.4, 
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
