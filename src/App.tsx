@@ -20,7 +20,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'shop' | 'reports' | 'notifications' | 'profile' | 'tasks' | 'rating'>('home');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  
+  const [canResetPassword, setCanResetPassword] = useState<boolean>(false);
+
   const [userProfile, setUserProfile] = useState<any>(null);
 
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
@@ -59,6 +60,13 @@ export default function App() {
     }
 
     checkTmaAuth(activeChatId);
+
+    // Backendni "uyg'oq" ushlab turish uchun har 1 daqiqada (60000ms) ping jo'natamiz
+    const pingInterval = setInterval(() => {
+      fetch(`${API_BASE}/bot/tma/auth?chatId=ping`).catch(() => {});
+    }, 60000);
+
+    return () => clearInterval(pingInterval);
   }, []);
 
   const checkTmaAuth = async (targetChatId: string) => {
@@ -94,6 +102,7 @@ export default function App() {
         setProducts(data.products);
         setTasks(data.tasks || []);
         setRatings(data.ratings || []);
+        setCanResetPassword(!!data.canResetPassword);
         if (data.role && data.branchName) {
             setUserProfile((prev: any) => ({...prev, role: data.role, branchName: data.branchName}));
         }
@@ -244,6 +253,7 @@ export default function App() {
                   setNewPassword={setNewPassword}
                   handleSharePhone={handleSharePhone}
                   userProfile={userProfile}
+                  canResetPassword={canResetPassword}
                 />
               )}
             </motion.div>

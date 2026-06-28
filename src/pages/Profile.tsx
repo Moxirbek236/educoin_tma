@@ -14,6 +14,7 @@ interface ProfileProps {
   handleSharePhone: () => void;
   handleResetPasswordSubmit?: (e: React.FormEvent) => void;
   userProfile?: any;
+  canResetPassword?: boolean;
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -27,6 +28,7 @@ export const Profile: React.FC<ProfileProps> = ({
   handleSharePhone,
   handleResetPasswordSubmit,
   userProfile,
+  canResetPassword
 }) => {
   
   const submitHandler = handleResetPasswordSubmit || ((e: React.FormEvent) => {
@@ -68,72 +70,53 @@ export const Profile: React.FC<ProfileProps> = ({
       </motion.div>
 
       {/* Security */}
-      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
-        <Card sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Lock size={20} color="#7F56D9" />
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Xavfsizlik</Typography>
+      {canResetPassword && (
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
+          <Card sx={{ p: 2, mb: 2, bgcolor: '#F9FAFB', boxShadow: 'none', border: '1px solid #EAECF0' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Lock size={20} color="#7F56D9" />
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Xavfsizlik</Typography>
+              </Box>
             </Box>
-            <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>Boshqarish</Typography>
-          </Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-            Parolingizni unutgan bo'lsangiz, Telegram orqali kontaktingizni tasdiqlab uni yangilashingiz mumkin.
-          </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              Telefon raqamingiz tasdiqlangan. Yangi parol yaratish uchun quyidagi tugmani bosing.
+            </Typography>
 
-          <AnimatePresence mode="wait">
-            {showPasswordReset ? (
-              <motion.div key="reset-form" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                <Box sx={{ bgcolor: '#F4EBFF', border: '1px solid #E9D7FE', p: 2, borderRadius: 2 }}>
-                  {!verificationSuccess ? (
-                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                      <ShieldAlert size={40} color="#7F56D9" style={{ margin: '0 auto' }} />
-                      <Typography variant="caption" color="text.primary" sx={{ fontWeight: 'medium' }}>
-                        Telefon raqamingiz rostan ham ushbu Telegram akkauntingizga tegishli ekanligini tasdiqlang.
-                      </Typography>
-                      <Button 
-                        variant="contained" 
-                        fullWidth 
-                        onClick={handleSharePhone} 
-                        disabled={isVerifying}
-                        startIcon={isVerifying ? <CircularProgress size={16} color="inherit" /> : <Send size={16} />}
-                        sx={{ mt: 1 }}
-                      >
-                        {isVerifying ? 'Tasdiqlanmoqda...' : 'Telefon raqamni yuborish'}
-                      </Button>
-                    </Box>
-                  ) : (
-                    <Box component="form" onSubmit={submitHandler} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, color: '#027A48' }}>
-                        <CheckCircle size={16} />
-                        <Typography variant="caption" sx={{ fontWeight: 'bold' }}>Tasdiqlandi: {phoneNumber}</Typography>
-                      </Box>
-                      <TextField 
-                        type="password" 
-                        label="Yangi parol" 
-                        variant="outlined" 
-                        size="small" 
-                        fullWidth 
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                        sx={{ bgcolor: '#fff' }}
-                      />
-                      <Button type="submit" variant="contained" fullWidth>Saqlash</Button>
-                    </Box>
-                  )}
-                </Box>
-              </motion.div>
-            ) : (
-              <motion.div key="reset-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <Button variant="outlined" fullWidth onClick={() => setShowPasswordReset(true)} color="inherit" sx={{ borderColor: '#EAECF0' }}>
-                  Parolni tiklash
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Card>
-      </motion.div>
+            <Button 
+              variant="contained" 
+              fullWidth 
+              onClick={async () => {
+                try {
+                  const searchParams = new URLSearchParams(window.location.search);
+                  let activeChatId = searchParams.get('chatId');
+                  if (!activeChatId) {
+                    const tg = (window as any).Telegram?.WebApp;
+                    if (tg) activeChatId = tg.initDataUnsafe?.user?.id;
+                  }
+                  
+                  const res = await fetch('https://educoin-b2b.educoinapp.uz/api/v1/bot/tma/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chatId: activeChatId })
+                  });
+                  const data = await res.json();
+                  if (data.success && data.newPassword) {
+                    alert(`✅ Parolingiz tiklandi!\n\n🔑 Yangi parol: ${data.newPassword}\n\nUshbu parol Telegram orqali ham yuborildi.`);
+                  } else {
+                    alert("Xatolik yuz berdi!");
+                  }
+                } catch (e) {
+                  alert("Xatolik yuz berdi!");
+                }
+              }} 
+              sx={{ bgcolor: '#7F56D9', '&:hover': { bgcolor: '#6941C6' } }}
+            >
+              Yangi parol yaratish
+            </Button>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Logout */}
       <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
@@ -141,7 +124,36 @@ export const Profile: React.FC<ProfileProps> = ({
           fullWidth 
           sx={{ bgcolor: '#FEF3F2', color: '#B42318', py: 1.5, fontWeight: 'bold', '&:hover': { bgcolor: '#FEE4E2' } }}
           startIcon={<LogOut size={18} />}
-          onClick={() => alert('Chiqish tizimi faol')}
+          onClick={async () => {
+            try {
+              const searchParams = new URLSearchParams(window.location.search);
+              let activeChatId = searchParams.get('chatId');
+              const tg = (window as any).Telegram?.WebApp;
+              
+              if (!activeChatId && tg) {
+                activeChatId = tg.initDataUnsafe?.user?.id;
+              }
+
+              if (activeChatId) {
+                await fetch('https://educoin-b2b.educoinapp.uz/api/v1/bot/tma/logout', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ chatId: String(activeChatId) })
+                });
+              }
+
+              if (tg) {
+                tg.close();
+              } else {
+                window.location.reload();
+              }
+            } catch (err) {
+              console.error(err);
+              if ((window as any).Telegram?.WebApp) {
+                (window as any).Telegram.WebApp.close();
+              }
+            }
+          }}
         >
           Tizimdan chiqish
         </Button>

@@ -16,24 +16,52 @@ interface ShopProps {
 export const Shop: React.FC<ShopProps> = ({ products, balance, setBalance, transactions, setTransactions }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isBuying, setIsBuying] = useState(false);
 
-  const handleBuyProduct = (product: Product) => {
+  const handleBuyProduct = async (product: Product) => {
     if (balance < product.price) {
       alert('Koinlar yetarli emas!');
       return;
     }
-    setBalance(prev => prev - product.price);
-    const newTx: Transaction = {
-      id: 'tx_' + Date.now(),
-      type: 'SPENT',
-      amount: product.price,
-      description: `Do'kondan ${product.name} sotib olindi`,
-      date: new Date().toISOString().split('T')[0],
-      category: 'Xarid'
-    };
-    setTransactions([newTx, ...transactions]);
-    setSelectedProduct(null);
-    alert('Muvaffaqiyatli sotib olindi! Filial adminstratoridan qabul qilishingiz mumkin.');
+    
+    setIsBuying(true);
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      let activeChatId = searchParams.get('chatId');
+      if (!activeChatId) {
+        const tg = (window as any).Telegram?.WebApp;
+        if (tg) activeChatId = tg.initDataUnsafe?.user?.id;
+      }
+
+      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://educoin-b2b.educoinapp.uz' : 'https://educoin-b2b-dev.educoinapp.uz';
+      const res = await fetch(`${baseUrl}/api/v1/bot/tma/buy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId: activeChatId, productId: Number(product.id) })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setBalance(prev => prev - product.price);
+        const newTx: Transaction = {
+          id: 'tx_' + Date.now(),
+          type: 'SPENT',
+          amount: product.price,
+          description: `Do'kondan ${product.name} sotib olindi`,
+          date: new Date().toISOString().split('T')[0],
+          category: 'Xarid'
+        };
+        setTransactions([newTx, ...transactions]);
+        setSelectedProduct(null);
+        alert('Muvaffaqiyatli sotib olindi! Filial adminstratoridan qabul qilishingiz mumkin.');
+      } else {
+        alert(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (e) {
+      alert('Server bilan ulanishda xatolik');
+    } finally {
+      setIsBuying(false);
+    }
   };
 
   return (
@@ -124,13 +152,14 @@ export const Shop: React.FC<ShopProps> = ({ products, balance, setBalance, trans
             </DialogContent>
             <DialogActions sx={{ p: 2, pt: 0 }}>
               <Button 
-                variant="contained" 
-                fullWidth 
-                startIcon={<ShoppingBag size={18} />}
-                onClick={() => handleBuyProduct(selectedProduct)}
-              >
-                Sotib olish ({selectedProduct.price} Coin)
-              </Button>
+              variant="contained" 
+              fullWidth 
+              size="large"
+              onClick={() => handleBuyProduct(selectedProduct)}
+              disabled={balance < selectedProduct.price || isBuying}
+            >
+              {isBuying ? 'Xarid qilinmoqda...' : `${selectedProduct.price} Coin evaziga olish`}
+            </Button>
             </DialogActions>
           </Dialog>
         )}

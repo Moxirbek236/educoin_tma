@@ -37,7 +37,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, r
       >
         <BottomNavigationAction label="Bosh sahifa" value="home" icon={<Home size={22} />} />
         
-        {isStudent && <BottomNavigationAction label="Do'kon" value="shop" icon={<ShoppingBag size={22} />} />}
+        {(isStudent || isTeacher) && <BottomNavigationAction label="Do'kon" value="shop" icon={<ShoppingBag size={22} />} />}
         {isTeacher && <BottomNavigationAction label="Vazifalar" value="tasks" icon={<CheckCircle size={22} />} />}
         {(isCreator || isStudent) && <BottomNavigationAction label="Reyting" value="rating" icon={<Star size={22} />} />}
         
