@@ -1,4 +1,5 @@
 import React from 'react';
+import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { Home, ShoppingBag, FileText, Bell, User } from 'lucide-react';
 
 interface BottomNavProps {
@@ -8,46 +9,32 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-cardBg border-t border-gray-100 py-2 px-6 flex justify-between items-center z-40">
-      <button 
-        onClick={() => setActiveTab('home')}
-        className={`flex flex-col items-center ${activeTab === 'home' ? 'text-primary' : 'text-icon'}`}
+    <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40, borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', overflow: 'hidden' }} elevation={3}>
+      <BottomNavigation
+        showLabels
+        value={activeTab}
+        onChange={(_, newValue) => {
+          setActiveTab(newValue);
+        }}
+        sx={{
+          bgcolor: 'background.paper',
+          height: 65,
+          '& .MuiBottomNavigationAction-label': {
+            fontSize: '0.65rem',
+            mt: 0.5,
+          },
+          '& .Mui-selected': {
+            fontSize: '0.7rem !important',
+            fontWeight: 'bold',
+          }
+        }}
       >
-        <Home className="w-5 h-5 mb-1" />
-        <span className="text-[10px] font-medium">Bosh sahifa</span>
-      </button>
-      
-      <button 
-        onClick={() => setActiveTab('shop')}
-        className={`flex flex-col items-center ${activeTab === 'shop' ? 'text-primary' : 'text-icon'}`}
-      >
-        <ShoppingBag className="w-5 h-5 mb-1" />
-        <span className="text-[10px] font-medium">Do'kon</span>
-      </button>
-      
-      <button 
-        onClick={() => setActiveTab('reports')}
-        className={`flex flex-col items-center ${activeTab === 'reports' ? 'text-primary' : 'text-icon'}`}
-      >
-        <FileText className="w-5 h-5 mb-1" />
-        <span className="text-[10px] font-medium">Hisobot</span>
-      </button>
-      
-      <button 
-        onClick={() => setActiveTab('notifications')}
-        className={`flex flex-col items-center ${activeTab === 'notifications' ? 'text-primary' : 'text-icon'}`}
-      >
-        <Bell className="w-5 h-5 mb-1" />
-        <span className="text-[10px] font-medium">Xabarlar</span>
-      </button>
-      
-      <button 
-        onClick={() => setActiveTab('profile')}
-        className={`flex flex-col items-center ${activeTab === 'profile' ? 'text-primary' : 'text-icon'}`}
-      >
-        <User className="w-5 h-5 mb-1" />
-        <span className="text-[10px] font-medium">Profil</span>
-      </button>
-    </nav>
+        <BottomNavigationAction label="Bosh sahifa" value="home" icon={<Home size={22} />} />
+        <BottomNavigationAction label="Do'kon" value="shop" icon={<ShoppingBag size={22} />} />
+        <BottomNavigationAction label="Hisobot" value="reports" icon={<FileText size={22} />} />
+        <BottomNavigationAction label="Xabarlar" value="notifications" icon={<Bell size={22} />} />
+        <BottomNavigationAction label="Profil" value="profile" icon={<User size={22} />} />
+      </BottomNavigation>
+    </Paper>
   );
 };

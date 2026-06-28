@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppBar, Toolbar, Box, Typography, IconButton, Badge } from '@mui/material';
 import { Bell } from 'lucide-react';
 import type { NotificationItem } from '../types';
 
@@ -8,33 +9,32 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ notifications, setActiveTab }) => {
-  const hasUnread = notifications.some(n => n.unread);
+  const hasUnread = notifications.some(n => n.unread || !n.isRead);
 
   return (
-    <header className="bg-primary text-white p-4 sticky top-0 z-30 shadow-md">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+    <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'primary.main', borderBottomLeftRadius: '1rem', borderBottomRightRadius: '1rem' }}>
+      <Toolbar sx={{ justifyContent: 'space-between', p: 1.5, minHeight: 'unset !important' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <img 
             src="https://educoin-b2b.educoinapp.uz/api/v1/files/educoin/default_coin.png" 
             alt="Educoin Logo" 
-            className="w-9 h-9 object-contain"
+            style={{ width: 36, height: 36, objectFit: 'contain' }}
           />
-          <div>
-            <h1 className="text-lg font-bold tracking-wide">EduCoin</h1>
-            <p className="text-xs text-purple-200">Chilonzor Filiali • Student</p>
-          </div>
-        </div>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>EduCoin</Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Chilonzor Filiali • Student</Typography>
+          </Box>
+        </Box>
         
-        <button 
+        <IconButton 
           onClick={() => setActiveTab('notifications')}
-          className="relative p-2 bg-white bg-opacity-10 rounded-custom transition-all hover:bg-opacity-20"
+          sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.2)' } }}
         >
-          <Bell className="w-5 h-5 text-white" />
-          {hasUnread && (
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-primary"></span>
-          )}
-        </button>
-      </div>
-    </header>
+          <Badge color="error" variant="dot" invisible={!hasUnread}>
+            <Bell size={20} color="#FFFFFF" />
+          </Badge>
+        </IconButton>
+      </Toolbar>
+    </AppBar>
   );
 };

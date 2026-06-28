@@ -1,52 +1,140 @@
 import React, { useState } from 'react';
-import { Search, Gift } from 'lucide-react';
-import type { Product } from '../types';
+import { Box, Card, CardMedia, CardContent, Typography, Button, TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Gift, ShoppingBag, X } from 'lucide-react';
+import type { Product, Transaction } from '../types';
 
 interface ShopProps {
   products: Product[];
-  setSelectedProduct: (product: Product | null) => void;
+  setSelectedProduct?: (product: Product | null) => void;
+  balance: number;
+  setBalance: React.Dispatch<React.SetStateAction<number>>;
+  transactions: Transaction[];
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }
 
-export const Shop: React.FC<ShopProps> = ({ products, setSelectedProduct }) => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
+export const Shop: React.FC<ShopProps> = ({ products, balance, setBalance, transactions, setTransactions }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const handleBuyProduct = (product: Product) => {
+    if (balance < product.price) {
+      alert('Koinlar yetarli emas!');
+      return;
+    }
+    setBalance(prev => prev - product.price);
+    const newTx: Transaction = {
+      id: 'tx_' + Date.now(),
+      type: 'SPENT',
+      amount: product.price,
+      description: `Do'kondan ${product.name} sotib olindi`,
+      date: new Date().toISOString().split('T')[0],
+      category: 'Xarid'
+    };
+    setTransactions([newTx, ...transactions]);
+    setSelectedProduct(null);
+    alert('Muvaffaqiyatli sotib olindi! Filial adminstratoridan qabul qilishingiz mumkin.');
+  };
 
   return (
-    <div className="space-y-4 animate-fadeIn">
-      {/* Shop Search Bar */}
-      <div className="bg-cardBg p-4 rounded-custom shadow-sm flex items-center space-x-2">
-        <Search className="w-5 h-5 text-icon" />
-        <input 
-          type="text" 
-          placeholder="Gifts / Sovg'alarni qidirish..." 
-          className="bg-transparent text-sm w-full outline-none text-gray-700"
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* Search Bar */}
+      <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Gifts / Sovg'alarni qidirish..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={20} color="#596371" />
+                </InputAdornment>
+              ),
+              sx: { bgcolor: 'background.paper', borderRadius: '0.65rem' }
+            }
+          }}
+          size="small"
         />
-      </div>
+      </motion.div>
 
-      {/* Grid List */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Product Grid */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
         {products
           .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-          .map((product) => (
-            <div key={product.id} className="bg-cardBg rounded-custom shadow-sm overflow-hidden flex flex-col">
-              <img src={product.image} alt={product.name} className="h-28 w-full object-cover" />
-              <div className="p-3 flex-1 flex flex-col justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-800 mb-1 leading-snug">{product.name}</h4>
-                  <p className="text-xs text-gray-400 mb-2">Qoldiq: {product.stock} ta</p>
-                </div>
-                <button 
-                  onClick={() => setSelectedProduct(product)}
-                  className="w-full bg-primary text-white py-1.5 rounded-custom text-xs font-semibold flex justify-center items-center space-x-1"
-                >
-                  <Gift className="w-3.5 h-3.5" />
-                  <span>{product.price} Coin</span>
-                </button>
-              </div>
-            </div>
+          .map((product, index) => (
+            <motion.div key={product.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.05 }}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardMedia
+                  component="img"
+                  height="120"
+                  image={product.image}
+                  alt={product.name}
+                  sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ flexGrow: 1, p: 1.5, display: 'flex', flexDirection: 'column', gap: 1, '&:last-child': { pb: 1.5 } }}>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', lineHeight: 1.2, mb: 0.5 }}>
+                      {product.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Qoldiq: {product.stock} ta
+                    </Typography>
+                  </Box>
+                  <Button 
+                    variant="contained" 
+                    fullWidth 
+                    size="small"
+                    startIcon={<Gift size={16} />}
+                    onClick={() => setSelectedProduct(product)}
+                  >
+                    {product.price} Coin
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-      </div>
-    </div>
+      </Box>
+
+      {/* Buy Product Modal */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <Dialog 
+            open={!!selectedProduct} 
+            onClose={() => setSelectedProduct(null)}
+            slotProps={{ paper: { sx: { borderRadius: '1rem', width: '100%', m: 2 } } }}
+          >
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', pb: 1 }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{selectedProduct.name}</Typography>
+                <Typography variant="caption" color="text.secondary">Narxi: {selectedProduct.price} Coin</Typography>
+              </Box>
+              <IconButton onClick={() => setSelectedProduct(null)} size="small" sx={{ mr: -1, mt: -1 }}>
+                <X size={20} />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ pb: 2 }}>
+              <img src={selectedProduct.image} alt={selectedProduct.name} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: '0.65rem', marginBottom: 16 }} />
+              <Box sx={{ bgcolor: '#F4EBFF', p: 1.5, borderRadius: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>Sizdagi coinlar:</Typography>
+                <Typography variant="subtitle2" color="primary.main" sx={{ fontWeight: 'bold' }}>{balance} Coin</Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, pt: 0 }}>
+              <Button 
+                variant="contained" 
+                fullWidth 
+                startIcon={<ShoppingBag size={18} />}
+                onClick={() => handleBuyProduct(selectedProduct)}
+              >
+                Sotib olish ({selectedProduct.price} Coin)
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
+      </AnimatePresence>
+    </Box>
   );
 };

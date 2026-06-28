@@ -18,7 +18,11 @@ export interface Product {
 export interface NotificationItem {
   id: string;
   title: string;
-  content: string;
-  time: string;
-  unread: boolean;
+  content?: string;
+  message?: string;
+  time?: string;
+  date?: string;
+  unread?: boolean;
+  isRead?: boolean;
+  type?: 'system' | 'user';
 }

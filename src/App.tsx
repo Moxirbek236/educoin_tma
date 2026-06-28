@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import { ThemeProvider, CssBaseline, Box, Typography, Button, TextField, Paper, CircularProgress } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { theme } from './theme';
+
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { Home } from './pages/Home';
@@ -7,56 +11,38 @@ import { Reports } from './pages/Reports';
 import { Notifications } from './pages/Notifications';
 import { Profile } from './pages/Profile';
 import type { Transaction, Product, NotificationItem } from './types';
-import { X, Send, ShoppingBag } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1'; // Standard relative path, works perfectly under Vercel proxy or local dev proxy
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 export default function App() {
-  // Navigation & Auth States
   const [activeTab, setActiveTab] = useState<'home' | 'shop' | 'reports' | 'notifications' | 'profile'>('home');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null); // null means checking
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
-  // Telegram Session
-  const [chatId, setChatId] = useState<string>('123456789'); // Mock default for browser testing
+  const [chatId, setChatId] = useState<string>('123456789');
   const [tgUsername, setTgUsername] = useState<string>('guest_user');
   
-  // Login Inputs
   const [identifier, setIdentifier] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loginError, setLoginError] = useState<string>('');
 
-  // User details
-  const [userProfile, setUserProfile] = useState<{
-    id: number;
-    fullname: string;
-    phone: string;
-    email: string;
-    role: string;
-  } | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
-  // Security / Reset Password States
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [verificationSuccess, setVerificationSuccess] = useState<boolean>(false);
   const [showPasswordReset, setShowPasswordReset] = useState<boolean>(false);
   const [newPassword, setNewPassword] = useState<string>('');
 
-  // Live Database States
   const [balance, setBalance] = useState<number>(0);
   const [latestReport, setLatestReport] = useState<string>('Yuklanmoqda...');
   const [products, setProducts] = useState<Product[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   
-  // Modals
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [showSendModal, setShowSendModal] = useState<boolean>(false);
-  const [recipientPhone, setRecipientPhone] = useState<string>('');
-  const [sendAmount, setSendAmount] = useState<number>(0);
+
   const [quizAnswered, setQuizAnswered] = useState<boolean>(false);
 
-  // 1. Initial Telegram SDK setup and Auth check
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
     let activeChatId = '123456789';
@@ -66,6 +52,7 @@ export default function App() {
       tg.ready();
       tg.expand();
       tg.setHeaderColor('#7F56D9');
+      tg.setBackgroundColor('#F2F4F7');
       
       const user = tg.initDataUnsafe?.user;
       if (user?.id) {
@@ -94,7 +81,6 @@ export default function App() {
         setIsAuthenticated(false);
       }
     } catch (err) {
-      console.error('TMA Auth check failed:', err);
       setIsAuthenticated(false);
     } finally {
       setLoading(false);
@@ -112,12 +98,9 @@ export default function App() {
         setNotifications(data.notifications);
         setProducts(data.products);
       }
-    } catch (err) {
-      console.error('Error fetching TMA data:', err);
-    }
+    } catch (err) {}
   };
 
-  // Credentials Login (Syncs/Creates BotLogin in DB)
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -127,12 +110,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/bot/tma/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          identifier,
-          password,
-          chatId,
-          username: tgUsername
-        })
+        body: JSON.stringify({ identifier, password, chatId, username: tgUsername })
       });
 
       const data = await res.json();
@@ -153,62 +131,11 @@ export default function App() {
 
   const handleSharePhone = () => {
     setIsVerifying(true);
-    // Simulating Telegram contact sharing API check
     setTimeout(() => {
       setIsVerifying(false);
       setVerificationSuccess(true);
       setPhoneNumber(userProfile?.phone || '+998 99 123 45 67');
     }, 1500);
-  };
-
-  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword.trim().length >= 4) {
-      alert('Parol muvaffaqiyatli tiklandi! Yangi parolingiz saqlandi.');
-      setShowPasswordReset(false);
-      setVerificationSuccess(false);
-    }
-  };
-
-  const handleBuyProduct = (product: Product) => {
-    if (balance < product.price) {
-      alert('Koinlar yetarli emas!');
-      return;
-    }
-    setBalance(prev => prev - product.price);
-    const newTx: Transaction = {
-      id: 'tx_' + Date.now(),
-      type: 'SPENT',
-      amount: product.price,
-      description: `Do'kondan ${product.name} sotib olindi`,
-      date: new Date().toISOString().split('T')[0],
-      category: 'Xarid'
-    };
-    setTransactions([newTx, ...transactions]);
-    setSelectedProduct(null);
-    alert('Muvaffaqiyatli sotib olindi! Filial adminstratoridan qabul qilishingiz mumkin.');
-  };
-
-  const handleSendCoins = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (sendAmount <= 0 || balance < sendAmount) {
-      alert('Noto\'g\'ri summa kiritilgan yoki coin yetarli emas!');
-      return;
-    }
-    setBalance(prev => prev - sendAmount);
-    const newTx: Transaction = {
-      id: 'tx_' + Date.now(),
-      type: 'SENT',
-      amount: sendAmount,
-      description: `${recipientPhone} raqamiga yuborildi`,
-      date: new Date().toISOString().split('T')[0],
-      category: 'O\'tkazma'
-    };
-    setTransactions([newTx, ...transactions]);
-    setShowSendModal(false);
-    setRecipientPhone('');
-    setSendAmount(0);
-    alert('Coinlar muvaffaqiyatli o\'tkazildi!');
   };
 
   const claimDailyQuiz = () => {
@@ -225,216 +152,147 @@ export default function App() {
     setTransactions([newTx, ...transactions]);
   };
 
-  // Loading Screen
   if (isAuthenticated === null || (loading && !userProfile)) {
     return (
-      <div className="min-h-screen bg-bodyBg flex flex-col justify-center items-center">
-        <img 
-          src="https://educoin-b2b.educoinapp.uz/api/v1/files/educoin/default_coin.png" 
-          alt="Educoin Logo" 
-          className="w-16 h-16 animate-bounce object-contain mb-4"
-        />
-        <p className="text-sm font-semibold text-gray-500">EduCoin TMA yuklanmoqda...</p>
-      </div>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+          <motion.img 
+            src="https://educoin-b2b.educoinapp.uz/api/v1/files/educoin/default_coin.png" 
+            alt="Educoin Logo" 
+            animate={{ scale: [1, 1.1, 1], rotate: [0, 10, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 20 }}
+          />
+          <CircularProgress color="primary" />
+        </Box>
+      </ThemeProvider>
     );
   }
 
   // Unauthenticated Login Screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-bodyBg flex justify-center items-start">
-        <div className="w-full max-w-md min-h-screen bg-bodyBg shadow-xl p-6 flex flex-col justify-center space-y-6">
-          <div className="text-center space-y-3">
-            <img 
-              src="https://educoin-b2b.educoinapp.uz/api/v1/files/educoin/default_coin.png" 
-              alt="Educoin Logo" 
-              className="w-20 h-20 mx-auto object-contain"
-            />
-            <h2 className="text-xl font-bold text-gray-800">EduCoin Tizimiga Kirish</h2>
-            <p className="text-xs text-gray-500">TMA va Telegram Bot hisoblarini bog'lash uchun profilingizga kiring</p>
-          </div>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', p: 2 }}>
+          <Paper elevation={0} sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: '1rem', backgroundColor: 'transparent' }}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <img 
+                  src="https://educoin-b2b.educoinapp.uz/api/v1/files/educoin/default_coin.png" 
+                  alt="Logo" 
+                  style={{ width: 80, height: 80, margin: '0 auto', marginBottom: 16 }}
+                />
+                <Typography variant="h5" color="textPrimary" sx={{ fontWeight: 'bold' }}>EduCoin'ga xush kelibsiz</Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>Tizimga kirish uchun malumotlaringizni kiriting</Typography>
+              </Box>
 
-          {loginError && (
-            <div className="bg-red-50 text-red-600 text-xs p-3 rounded-custom text-center font-medium">
-              {loginError}
-            </div>
-          )}
+              {loginError && (
+                <Paper elevation={0} sx={{ p: 2, mb: 3, bgcolor: '#FEF3F2', color: '#B42318', textAlign: 'center', border: '1px solid #FECDCA' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{loginError}</Typography>
+                </Paper>
+              )}
 
-          <form onSubmit={handleCredentialsLogin} className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1">Telefon raqam yoki Email</label>
-              <input 
-                type="text" 
-                placeholder="Telefon yoki email..." 
-                className="w-full bg-cardBg border border-gray-200 rounded-custom p-3 text-sm outline-none focus:border-primary"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 block mb-1">Parol</label>
-              <input 
-                type="password" 
-                placeholder="Parol..." 
-                className="w-full bg-cardBg border border-gray-200 rounded-custom p-3 text-sm outline-none focus:border-primary"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button 
-              type="submit" 
-              className="w-full bg-primary text-white py-3 rounded-custom font-bold text-sm hover:bg-opacity-95 transition-all"
-            >
-              Kirish va Bog'lash
-            </button>
-          </form>
-        </div>
-      </div>
+              <form onSubmit={handleCredentialsLogin}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <TextField 
+                    label="Telefon yoki Email" 
+                    variant="outlined" 
+                    fullWidth 
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    required
+                  />
+                  <TextField 
+                    label="Parol" 
+                    type="password" 
+                    variant="outlined" 
+                    fullWidth 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    size="large" 
+                    fullWidth
+                    disabled={loading}
+                    sx={{ mt: 1, py: 1.5, fontSize: '1rem' }}
+                  >
+                    {loading ? <CircularProgress size={24} color="inherit" /> : "Kirish va Bog'lash"}
+                  </Button>
+                </Box>
+              </form>
+            </motion.div>
+          </Paper>
+        </Box>
+      </ThemeProvider>
     );
   }
 
-  // Authenticated Dashboard
   return (
-    <div className="min-h-screen bg-bodyBg flex justify-center items-start">
-      <div className="w-full max-w-md min-h-screen bg-bodyBg shadow-xl flex flex-col relative pb-20 select-none">
-        
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ pb: 7, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Header notifications={notifications} setActiveTab={setActiveTab} />
-
-        <main className="flex-1 p-4 overflow-y-auto">
-          {activeTab === 'home' && (
-            <Home 
-              balance={balance} 
-              transactions={transactions} 
-              setActiveTab={setActiveTab} 
-              setShowSendModal={setShowSendModal} 
-              quizAnswered={quizAnswered} 
-              claimDailyQuiz={claimDailyQuiz} 
-            />
-          )}
-
-          {activeTab === 'shop' && (
-            <Shop 
-              products={products} 
-              setSelectedProduct={setSelectedProduct} 
-            />
-          )}
-
-          {activeTab === 'reports' && (
-            <div className="space-y-4 animate-fadeIn">
-              <Reports />
-              
-              {/* Daily report content dynamically from backend */}
-              <div className="bg-cardBg p-5 rounded-custom shadow-sm border border-purple-100">
-                <h3 className="font-semibold text-gray-800 text-sm mb-3">Bugungi Kunlik Hisobot</h3>
-                <div className="text-xs text-gray-600 leading-relaxed whitespace-pre-line bg-gray-50 p-3 rounded-custom">
-                  {latestReport}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'notifications' && (
-            <Notifications notifications={notifications} />
-          )}
-
-          {activeTab === 'profile' && (
-            <Profile 
-              showPasswordReset={showPasswordReset}
-              setShowPasswordReset={setShowPasswordReset}
-              verificationSuccess={verificationSuccess}
-              isVerifying={isVerifying}
-              phoneNumber={phoneNumber}
-              newPassword={newPassword}
-              setNewPassword={setNewPassword}
-              handleSharePhone={handleSharePhone}
-              handleResetPasswordSubmit={handleResetPasswordSubmit}
-            />
-          )}
-        </main>
+        
+        <Box component="main" sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === 'home' && (
+                <Home 
+                  balance={balance} 
+                  transactions={transactions} 
+                  setBalance={setBalance}
+                  setTransactions={setTransactions}
+                  setActiveTab={setActiveTab} 
+                  quizAnswered={quizAnswered} 
+                  claimDailyQuiz={claimDailyQuiz} 
+                />
+              )}
+              {activeTab === 'shop' && (
+                <Shop 
+                  products={products} 
+                  balance={balance}
+                  setBalance={setBalance}
+                  setTransactions={setTransactions}
+                  transactions={transactions}
+                />
+              )}
+              {activeTab === 'reports' && (
+                <Reports latestReport={latestReport} />
+              )}
+              {activeTab === 'notifications' && (
+                <Notifications notifications={notifications} />
+              )}
+              {activeTab === 'profile' && (
+                <Profile 
+                  showPasswordReset={showPasswordReset}
+                  setShowPasswordReset={setShowPasswordReset}
+                  verificationSuccess={verificationSuccess}
+                  isVerifying={isVerifying}
+                  phoneNumber={phoneNumber}
+                  newPassword={newPassword}
+                  setNewPassword={setNewPassword}
+                  handleSharePhone={handleSharePhone}
+                  userProfile={userProfile}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </Box>
 
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
-
-        {/* Send Coins Modal */}
-        {showSendModal && (
-          <div className="absolute inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-cardBg w-full rounded-custom p-5 space-y-4 max-w-sm">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-gray-800">Coin yuborish</h3>
-                <button onClick={() => setShowSendModal(false)} className="text-gray-400 hover:text-gray-600">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSendCoins} className="space-y-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 block mb-1">Qabul qiluvchi telefon raqami</label>
-                  <input 
-                    type="text" 
-                    placeholder="+998 90 123 45 67" 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-custom p-2.5 text-sm outline-none focus:border-primary"
-                    value={recipientPhone}
-                    onChange={(e) => setRecipientPhone(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 block mb-1">O'tkazma summasi</label>
-                  <input 
-                    type="number" 
-                    placeholder="Masalan: 10" 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-custom p-2.5 text-sm outline-none focus:border-primary"
-                    value={sendAmount || ''}
-                    onChange={(e) => setSendAmount(Number(e.target.value))}
-                    required
-                  />
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full bg-primary text-white py-2.5 rounded-custom font-semibold text-sm flex justify-center items-center space-x-2"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>O'tkazishni tasdiqlash</span>
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Product Details / Buy Modal */}
-        {selectedProduct && (
-          <div className="absolute inset-0 bg-black bg-opacity-40 z-50 flex items-end justify-center z-50 animate-slideUp">
-            <div className="bg-cardBg w-full rounded-t-custom p-5 space-y-4 max-w-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-bold text-gray-800 text-base">{selectedProduct.name}</h3>
-                  <span className="text-xs text-gray-400">Narxi: {selectedProduct.price} Coin</span>
-                </div>
-                <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-gray-600">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-44 object-cover rounded-custom" />
-
-              <div className="bg-purple-50 p-3 rounded-custom flex justify-between items-center text-xs">
-                <span className="text-gray-600 font-medium">Sizdagi coinlar:</span>
-                <span className="font-bold text-primary">{balance} Coin</span>
-              </div>
-
-              <button 
-                onClick={() => handleBuyProduct(selectedProduct)}
-                className="w-full bg-primary text-white py-3 rounded-custom font-bold text-sm flex justify-center items-center space-x-2"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Sotib olishni tasdiqlash ({selectedProduct.price} Coin)</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-      </div>
-    </div>
+      </Box>
+    </ThemeProvider>
   );
 }

@@ -1,4 +1,6 @@
 import React from 'react';
+import { Box, Card, Typography, Avatar, Button, TextField, CircularProgress } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, LogOut, ShieldAlert, CheckCircle, Send } from 'lucide-react';
 
 interface ProfileProps {
@@ -10,7 +12,8 @@ interface ProfileProps {
   newPassword: string;
   setNewPassword: (pwd: string) => void;
   handleSharePhone: () => void;
-  handleResetPasswordSubmit: (e: React.FormEvent) => void;
+  handleResetPasswordSubmit?: (e: React.FormEvent) => void;
+  userProfile?: any;
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -23,104 +26,126 @@ export const Profile: React.FC<ProfileProps> = ({
   setNewPassword,
   handleSharePhone,
   handleResetPasswordSubmit,
+  userProfile,
 }) => {
+  
+  const submitHandler = handleResetPasswordSubmit || ((e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.trim().length >= 4) {
+      alert('Parol muvaffaqiyatli tiklandi! Yangi parolingiz saqlandi.');
+      setShowPasswordReset(false);
+    }
+  });
+
   return (
-    <div className="space-y-4 animate-fadeIn">
-      {/* Profile Card */}
-      <div className="bg-cardBg p-5 rounded-custom shadow-sm text-center">
-        <div className="w-20 h-20 bg-purple-100 rounded-full mx-auto flex justify-center items-center text-primary font-bold text-2xl mb-3">
-          SM
-        </div>
-        <h3 className="font-bold text-gray-800 text-lg">Sardor Mustafoyev</h3>
-        <p className="text-xs text-gray-400 mb-4">+998 99 123 45 67</p>
-        
-        <div className="bg-gray-50 p-3 rounded-custom text-left space-y-2">
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-500">Guruh:</span>
-            <span className="font-medium text-gray-700">FN-32 Front-End</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-500">Student ID:</span>
-            <span className="font-medium text-gray-700">#4573</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-500">Roli (RBAC):</span>
-            <span className="font-medium text-gray-700">STUDENT</span>
-          </div>
-        </div>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* Profile Info */}
+      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+        <Card sx={{ p: 3, textAlign: 'center' }}>
+          <Avatar sx={{ width: 80, height: 80, mx: 'auto', mb: 2, bgcolor: '#F4EBFF', color: 'primary.main', fontSize: '2rem', fontWeight: 'bold' }}>
+            {userProfile?.fullname ? userProfile.fullname.substring(0, 2).toUpperCase() : 'SM'}
+          </Avatar>
+          <Typography variant="h6" color="text.primary" sx={{ fontWeight: 'bold' }}>{userProfile?.fullname || 'Sardor Mustafoyev'}</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ mb: 3, display: 'block' }}>
+            {userProfile?.phone || '+998 99 123 45 67'}
+          </Typography>
+          
+          <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="caption" color="text.secondary">Guruh:</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 'bold' }}>FN-32 Front-End</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="caption" color="text.secondary">Student ID:</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 'bold' }}>#{userProfile?.id || '4573'}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="caption" color="text.secondary">Roli (RBAC):</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 'bold' }}>{userProfile?.role || 'STUDENT'}</Typography>
+            </Box>
+          </Box>
+        </Card>
+      </motion.div>
 
-      {/* Password Recovery Manager */}
-      <div className="bg-cardBg p-4 rounded-custom shadow-sm">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-semibold text-gray-800 flex items-center space-x-2">
-            <Lock className="w-5 h-5 text-primary" />
-            <span>Xavfsizlik</span>
-          </h3>
-          <span className="text-xs text-purple-600 font-medium">Boshqarish</span>
-        </div>
-        <p className="text-xs text-gray-500 mb-3 leading-relaxed">
-          Parolingizni unutgan bo'lsangiz, Telegram orqali kontaktingizni tasdiqlab uni yangilashingiz mumkin.
-        </p>
+      {/* Security */}
+      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
+        <Card sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Lock size={20} color="#7F56D9" />
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Xavfsizlik</Typography>
+            </Box>
+            <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>Boshqarish</Typography>
+          </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+            Parolingizni unutgan bo'lsangiz, Telegram orqali kontaktingizni tasdiqlab uni yangilashingiz mumkin.
+          </Typography>
 
-        {showPasswordReset ? (
-          <div className="p-3 bg-purple-50 rounded-custom border border-purple-100">
-            {!verificationSuccess ? (
-              <div className="text-center space-y-3">
-                <ShieldAlert className="w-10 h-10 text-primary mx-auto" />
-                <p className="text-xs text-gray-600 font-medium">
-                  Telefon raqamingiz rostan ham ushbu Telegram akkauntingizga tegishli ekanligini tasdiqlang.
-                </p>
-                <button 
-                  onClick={handleSharePhone}
-                  disabled={isVerifying}
-                  className="w-full bg-primary text-white py-2 rounded-custom text-xs font-semibold flex justify-center items-center space-x-2"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isVerifying ? 'Tasdiqlanmoqda...' : 'Telefon raqamni yuborish'}</span>
-                </button>
-              </div>
+          <AnimatePresence mode="wait">
+            {showPasswordReset ? (
+              <motion.div key="reset-form" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+                <Box sx={{ bgcolor: '#F4EBFF', border: '1px solid #E9D7FE', p: 2, borderRadius: 2 }}>
+                  {!verificationSuccess ? (
+                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <ShieldAlert size={40} color="#7F56D9" style={{ margin: '0 auto' }} />
+                      <Typography variant="caption" color="text.primary" sx={{ fontWeight: 'medium' }}>
+                        Telefon raqamingiz rostan ham ushbu Telegram akkauntingizga tegishli ekanligini tasdiqlang.
+                      </Typography>
+                      <Button 
+                        variant="contained" 
+                        fullWidth 
+                        onClick={handleSharePhone} 
+                        disabled={isVerifying}
+                        startIcon={isVerifying ? <CircularProgress size={16} color="inherit" /> : <Send size={16} />}
+                        sx={{ mt: 1 }}
+                      >
+                        {isVerifying ? 'Tasdiqlanmoqda...' : 'Telefon raqamni yuborish'}
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Box component="form" onSubmit={submitHandler} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, color: '#027A48' }}>
+                        <CheckCircle size={16} />
+                        <Typography variant="caption" sx={{ fontWeight: 'bold' }}>Tasdiqlandi: {phoneNumber}</Typography>
+                      </Box>
+                      <TextField 
+                        type="password" 
+                        label="Yangi parol" 
+                        variant="outlined" 
+                        size="small" 
+                        fullWidth 
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        sx={{ bgcolor: '#fff' }}
+                      />
+                      <Button type="submit" variant="contained" fullWidth>Saqlash</Button>
+                    </Box>
+                  )}
+                </Box>
+              </motion.div>
             ) : (
-              <form onSubmit={handleResetPasswordSubmit} className="space-y-3">
-                <div className="text-center text-xs text-green-600 font-medium flex justify-center items-center space-x-1 mb-2">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Raqamingiz tasdiqlandi: {phoneNumber}</span>
-                </div>
-                <input 
-                  type="password" 
-                  placeholder="Yangi parol..." 
-                  className="w-full bg-white border border-gray-200 rounded-custom p-2 text-xs outline-none focus:border-primary"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                />
-                <button 
-                  type="submit"
-                  className="w-full bg-primary text-white py-2 rounded-custom text-xs font-semibold"
-                >
-                  Saqlash
-                </button>
-              </form>
+              <motion.div key="reset-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <Button variant="outlined" fullWidth onClick={() => setShowPasswordReset(true)} color="inherit" sx={{ borderColor: '#EAECF0' }}>
+                  Parolni tiklash
+                </Button>
+              </motion.div>
             )}
-          </div>
-        ) : (
-          <button 
-            onClick={() => setShowPasswordReset(true)}
-            className="w-full bg-gray-50 text-gray-700 py-2 border border-gray-200 rounded-custom text-xs font-medium hover:bg-gray-100 transition-all"
-          >
-            Parolni tiklash
-          </button>
-        )}
-      </div>
+          </AnimatePresence>
+        </Card>
+      </motion.div>
 
-      {/* Log out */}
-      <button 
-        onClick={() => alert('Chiqish tizimi faol')}
-        className="w-full bg-red-50 text-red-600 py-3 rounded-custom text-sm font-semibold flex justify-center items-center space-x-2 hover:bg-red-100 transition-all"
-      >
-        <LogOut className="w-4 h-4" />
-        <span>Tizimdan chiqish</span>
-      </button>
-    </div>
+      {/* Logout */}
+      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+        <Button 
+          fullWidth 
+          sx={{ bgcolor: '#FEF3F2', color: '#B42318', py: 1.5, fontWeight: 'bold', '&:hover': { bgcolor: '#FEE4E2' } }}
+          startIcon={<LogOut size={18} />}
+          onClick={() => alert('Chiqish tizimi faol')}
+        >
+          Tizimdan chiqish
+        </Button>
+      </motion.div>
+    </Box>
   );
 };
