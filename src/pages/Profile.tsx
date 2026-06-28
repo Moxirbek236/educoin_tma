@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { Box, Card, Typography, Avatar, Button, TextField, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';

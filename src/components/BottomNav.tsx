@@ -1,6 +1,6 @@
 import React from 'react';
 import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { Home, ShoppingBag, FileText, Bell, User, CheckCircle, Star } from 'lucide-react';
+import { Home, FileText, Bell, User, CheckCircle, Star } from 'lucide-react';
 import type { UserRole } from '../types';
 
 interface BottomNavProps {
@@ -36,8 +36,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, r
         }}
       >
         <BottomNavigationAction label="Bosh sahifa" value="home" icon={<Home size={22} />} />
-        
-        {(isStudent || isTeacher) && <BottomNavigationAction label="Do'kon" value="shop" icon={<ShoppingBag size={22} />} />}
         {isTeacher && <BottomNavigationAction label="Vazifalar" value="tasks" icon={<CheckCircle size={22} />} />}
         {(isCreator || isStudent) && <BottomNavigationAction label="Reyting" value="rating" icon={<Star size={22} />} />}
         

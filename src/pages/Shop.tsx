@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Card, CardMedia, CardContent, Typography, Button, TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Gift, ShoppingBag, X } from 'lucide-react';
+import { Search, Gift, X } from 'lucide-react';
 import type { Product, Transaction } from '../types';
 
 interface ShopProps {
@@ -33,7 +33,7 @@ export const Shop: React.FC<ShopProps> = ({ products, balance, setBalance, trans
         if (tg) activeChatId = tg.initDataUnsafe?.user?.id;
       }
 
-      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://educoin-b2b.educoinapp.uz' : 'https://educoin-b2b-dev.educoinapp.uz';
+      const baseUrl = import.meta.env.MODE === 'production' ? 'https://educoin-b2b.educoinapp.uz' : 'https://educoin-b2b-dev.educoinapp.uz';
       const res = await fetch(`${baseUrl}/api/v1/bot/tma/buy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

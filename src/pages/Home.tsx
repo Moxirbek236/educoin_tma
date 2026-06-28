@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Box, Typography, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, List } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Send, QrCode, ShoppingBag, Award } from 'lucide-react';
+import { ShoppingBag, Award } from 'lucide-react';
 import type { Transaction, UserProfile } from '../types';
 
 interface HomeProps {
@@ -13,6 +13,7 @@ interface HomeProps {
   quizAnswered: boolean;
   claimDailyQuiz: () => void;
   userProfile?: UserProfile;
+  nextProductInfo?: { name: string, remainingCoins: number } | null;
 }
 
 export const Home: React.FC<HomeProps> = ({
@@ -24,6 +25,7 @@ export const Home: React.FC<HomeProps> = ({
   quizAnswered,
   claimDailyQuiz,
   userProfile,
+  nextProductInfo,
 }) => {
   const [showSendModal, setShowSendModal] = useState(false);
   const [recipientPhone, setRecipientPhone] = useState('');
@@ -79,18 +81,32 @@ export const Home: React.FC<HomeProps> = ({
           </Box>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, pt: 2, borderTop: '1px solid #EAECF0' }}>
-            <Box onClick={() => setShowSendModal(true)} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 1, cursor: 'pointer', borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-              <Send size={20} color="#7F56D9" />
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>Yuborish</Typography>
-            </Box>
-            <Box onClick={() => alert("QR-Kodni skanerlash faqat Telegram orqali ishlaydi")} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 1, cursor: 'pointer', borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-              <QrCode size={20} color="#7F56D9" />
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>QR Skaner</Typography>
-            </Box>
-            <Box onClick={() => setActiveTab('shop')} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 1, cursor: 'pointer', borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-              <ShoppingBag size={20} color="#7F56D9" />
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>Do'kon</Typography>
-            </Box>
+            {(userProfile?.role === 'STUDENT' || userProfile?.role === 'SCHOOL_STUDENT') ? (
+              <Box sx={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', p: 1, bgcolor: '#F9FAFB', borderRadius: 2 }}>
+                {nextProductInfo ? (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
+                      <b>{nextProductInfo.name}</b> sovg'asini olishga yana <b>{nextProductInfo.remainingCoins} coin</b> yetmayapti. Harakatda davom eting!
+                  </Typography>
+                ) : (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
+                      Ajoyib! Sizda ko'plab sovg'alarni olish uchun coinlar yetarli.
+                  </Typography>
+                )}
+              </Box>
+            ) : (
+              <Box sx={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 1, bgcolor: '#F9FAFB', borderRadius: 2 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
+                      {userProfile?.branchName || 'Markaz'} hisobotlari
+                  </Typography>
+              </Box>
+            )}
+
+            {(userProfile?.role === 'STUDENT' || userProfile?.role === 'SCHOOL_STUDENT' || userProfile?.role === 'TEACHER') && (
+              <Box onClick={() => setActiveTab('shop')} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 1, cursor: 'pointer', borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
+                <ShoppingBag size={20} color="#7F56D9" />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>Do'kon</Typography>
+              </Box>
+            )}
           </Box>
         </Card>
       </motion.div>

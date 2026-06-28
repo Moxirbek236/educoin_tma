@@ -33,6 +33,7 @@ export default function App() {
   const [balance, setBalance] = useState<number>(0);
   const [latestReport, setLatestReport] = useState<string>('Yuklanmoqda...');
   const [products, setProducts] = useState<Product[]>([]);
+  const [nextProductInfo, setNextProductInfo] = useState<{name: string, remainingCoins: number} | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -100,6 +101,7 @@ export default function App() {
         setTransactions(data.transactions);
         setNotifications(data.notifications);
         setProducts(data.products);
+        setNextProductInfo(data.nextProductInfo || null);
         setTasks(data.tasks || []);
         setRatings(data.ratings || []);
         setCanResetPassword(!!data.canResetPassword);
@@ -219,6 +221,7 @@ export default function App() {
                   quizAnswered={quizAnswered} 
                   claimDailyQuiz={claimDailyQuiz} 
                   userProfile={userProfile}
+                  nextProductInfo={nextProductInfo}
                 />
               )}
               {activeTab === 'shop' && (
