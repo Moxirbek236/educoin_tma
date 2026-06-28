@@ -55,10 +55,6 @@ export const Profile: React.FC<ProfileProps> = ({
           
           <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="caption" color="text.secondary">Guruh:</Typography>
-              <Typography variant="caption" sx={{ fontWeight: 'bold' }}>FN-32 Front-End</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="caption" color="text.secondary">Student ID:</Typography>
               <Typography variant="caption" sx={{ fontWeight: 'bold' }}>#{userProfile?.id || '4573'}</Typography>
             </Box>
