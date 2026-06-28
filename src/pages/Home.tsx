@@ -83,11 +83,18 @@ export const Home: React.FC<HomeProps> = ({
                 <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', p: 1.5, bgcolor: '#F9FAFB', borderRadius: 2 }}>
                   {nextProductInfo ? (
                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
-                        <b>{nextProductInfo.name}</b> sovg'asini olishga yana <b>{nextProductInfo.remainingCoins} coin</b> yetmayapti. Harakatda davom eting!
+                      <b>{nextProductInfo.name}</b> sovg'asini olishga yana <b>{nextProductInfo.remainingCoins} coin</b> yetmayapti. Harakatda davom eting!
+                    </Typography>
+                  ) : balance === 0 ? (
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
+                      Hali coinlaringiz yo'q. Faol bo'ling va coin yig'ing!
                     </Typography>
                   ) : (
                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
-                        {(userProfile?.role === 'TEACHER') ? "O'z yig'gan coinlaringizga do'kondan qimmatbaho sovg'alar xarid qiling!" : "Ajoyib! Sizda ko'plab sovg'alarni olish uchun coinlar yetarli."}
+                      {(userProfile?.role === 'TEACHER')
+                        ? "O'z yig'gan coinlaringizga do'kondan qimmatbaho sovg'alar xarid qiling!"
+                        : "Ajoyib! Sizda ko'plab sovg'alarni olish uchun coinlar yetarli."
+                      }
                     </Typography>
                   )}
                 </Box>
@@ -98,9 +105,9 @@ export const Home: React.FC<HomeProps> = ({
               </Box>
             ) : (
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 1.5, bgcolor: '#F9FAFB', borderRadius: 2 }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
-                      {userProfile?.branchName || 'Markaz'} hisobotlari
-                  </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1.3 }}>
+                  {userProfile?.branchName || 'Markaz'} hisobotlari
+                </Typography>
               </Box>
             )}
           </Box>
@@ -163,20 +170,20 @@ export const Home: React.FC<HomeProps> = ({
         </DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleSendCoins} sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <TextField 
-              label="Qabul qiluvchi telefon raqami" 
-              variant="outlined" 
-              fullWidth 
+            <TextField
+              label="Qabul qiluvchi telefon raqami"
+              variant="outlined"
+              fullWidth
               size="small"
               value={recipientPhone}
               onChange={(e) => setRecipientPhone(e.target.value)}
               required
             />
-            <TextField 
-              label="O'tkazma summasi" 
-              type="number" 
-              variant="outlined" 
-              fullWidth 
+            <TextField
+              label="O'tkazma summasi"
+              type="number"
+              variant="outlined"
+              fullWidth
               size="small"
               value={sendAmount}
               onChange={(e) => setSendAmount(Number(e.target.value))}
