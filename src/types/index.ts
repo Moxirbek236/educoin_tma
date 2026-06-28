@@ -1,6 +1,18 @@
+export type UserRole = 'STUDENT' | 'SCHOOL_STUDENT' | 'TEACHER' | 'ADMIN' | 'CREATOR';
+
+export interface UserProfile {
+  id: number;
+  fullname: string;
+  phone: string;
+  email: string;
+  role: UserRole;
+  branchId: number | null;
+  branchName?: string;
+}
+
 export interface Transaction {
   id: string;
-  type: 'RECEIVED' | 'SENT' | 'SPENT';
+  type: 'RECEIVED' | 'SENT' | 'SPENT' | 'GIVEN';
   amount: number;
   description: string;
   date: string;
@@ -25,4 +37,21 @@ export interface NotificationItem {
   unread?: boolean;
   isRead?: boolean;
   type?: 'system' | 'user';
+}
+
+export interface TaskItem {
+  id: string;
+  title: string;
+  description: string;
+  coinReward: number;
+  deadline: string;
+  status: 'PENDING' | 'COMPLETED' | 'OVERDUE';
+}
+
+export interface RatingUser {
+  rank: number;
+  id: number;
+  fullname: string;
+  coins: number;
+  branchName: string;
 }

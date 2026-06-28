@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Box, Typography, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, List } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Send, QrCode, ShoppingBag, Award } from 'lucide-react';
-import type { Transaction } from '../types';
+import type { Transaction, UserProfile } from '../types';
 
 interface HomeProps {
   balance: number;
@@ -12,6 +12,7 @@ interface HomeProps {
   setActiveTab: (tab: 'home' | 'shop' | 'reports' | 'notifications' | 'profile') => void;
   quizAnswered: boolean;
   claimDailyQuiz: () => void;
+  userProfile?: UserProfile;
 }
 
 export const Home: React.FC<HomeProps> = ({
@@ -22,6 +23,7 @@ export const Home: React.FC<HomeProps> = ({
   setActiveTab,
   quizAnswered,
   claimDailyQuiz,
+  userProfile,
 }) => {
   const [showSendModal, setShowSendModal] = useState(false);
   const [recipientPhone, setRecipientPhone] = useState('');
@@ -57,9 +59,11 @@ export const Home: React.FC<HomeProps> = ({
           <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'primary.main', opacity: 0.05 }} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Avatar sx={{ bgcolor: '#F4EBFF', color: 'primary.main', fontWeight: 'bold' }}>SM</Avatar>
+              <Avatar sx={{ bgcolor: '#F4EBFF', color: 'primary.main', fontWeight: 'bold' }}>
+                {userProfile?.fullname?.charAt(0) || 'U'}
+              </Avatar>
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Sardor Mustafoyev</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{userProfile?.fullname || "Foydalanuvchi"}</Typography>
                 <Typography variant="caption" sx={{ bgcolor: '#F4EBFF', color: 'primary.main', px: 1, py: 0.5, borderRadius: 10, fontWeight: 600 }}>
                   Bronze League
                 </Typography>

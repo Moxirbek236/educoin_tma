@@ -1,13 +1,19 @@
 import React from 'react';
 import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { Home, ShoppingBag, FileText, Bell, User } from 'lucide-react';
+import { Home, ShoppingBag, FileText, Bell, User, CheckCircle, Star } from 'lucide-react';
+import type { UserRole } from '../types';
 
 interface BottomNavProps {
-  activeTab: 'home' | 'shop' | 'reports' | 'notifications' | 'profile';
-  setActiveTab: (tab: 'home' | 'shop' | 'reports' | 'notifications' | 'profile') => void;
+  activeTab: string;
+  setActiveTab: (tab: any) => void;
+  role?: UserRole;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, role }) => {
+  const isStudent = role === 'STUDENT' || role === 'SCHOOL_STUDENT';
+  const isTeacher = role === 'TEACHER';
+  const isCreator = role === 'CREATOR' || role === 'ADMIN';
+
   return (
     <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40, borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', overflow: 'hidden' }} elevation={3}>
       <BottomNavigation
@@ -30,9 +36,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab })
         }}
       >
         <BottomNavigationAction label="Bosh sahifa" value="home" icon={<Home size={22} />} />
-        <BottomNavigationAction label="Do'kon" value="shop" icon={<ShoppingBag size={22} />} />
+        
+        {isStudent && <BottomNavigationAction label="Do'kon" value="shop" icon={<ShoppingBag size={22} />} />}
+        {isTeacher && <BottomNavigationAction label="Vazifalar" value="tasks" icon={<CheckCircle size={22} />} />}
+        {(isCreator || isStudent) && <BottomNavigationAction label="Reyting" value="rating" icon={<Star size={22} />} />}
+        
         <BottomNavigationAction label="Hisobot" value="reports" icon={<FileText size={22} />} />
         <BottomNavigationAction label="Xabarlar" value="notifications" icon={<Bell size={22} />} />
+        {/* We keep Profile for everyone */}
         <BottomNavigationAction label="Profil" value="profile" icon={<User size={22} />} />
       </BottomNavigation>
     </Paper>

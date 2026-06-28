@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ThemeProvider, CssBaseline, Box, Typography, Button, TextField, Paper, CircularProgress } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box, Typography, Button, Paper, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { theme } from './theme';
 
@@ -10,22 +10,17 @@ import { Shop } from './pages/Shop';
 import { Reports } from './pages/Reports';
 import { Notifications } from './pages/Notifications';
 import { Profile } from './pages/Profile';
+import { Tasks } from './pages/Tasks';
+import { Rating } from './pages/Rating';
 import type { Transaction, Product, NotificationItem } from './types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'shop' | 'reports' | 'notifications' | 'profile'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'shop' | 'reports' | 'notifications' | 'profile' | 'tasks' | 'rating'>('home');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
-  const [chatId, setChatId] = useState<string>('123456789');
-  const [tgUsername, setTgUsername] = useState<string>('guest_user');
-  
-  const [identifier, setIdentifier] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [loginError, setLoginError] = useState<string>('');
-
   const [userProfile, setUserProfile] = useState<any>(null);
 
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
@@ -39,14 +34,17 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [ratings, setRatings] = useState<any[]>([]);
   
-
   const [quizAnswered, setQuizAnswered] = useState<boolean>(false);
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlChatId = searchParams.get('chatId');
+
     const tg = (window as any).Telegram?.WebApp;
-    let activeChatId = '123456789';
-    let username = 'guest_user';
+    let activeChatId = urlChatId || '123456789';
 
     if (tg) {
       tg.ready();
@@ -56,13 +54,10 @@ export default function App() {
       
       const user = tg.initDataUnsafe?.user;
       if (user?.id) {
-        activeChatId = String(user.id);
-        username = user.username || `${user.first_name || ''}_${user.last_name || ''}`;
+        activeChatId = urlChatId || String(user.id);
       }
     }
 
-    setChatId(activeChatId);
-    setTgUsername(username);
     checkTmaAuth(activeChatId);
   }, []);
 
@@ -97,36 +92,13 @@ export default function App() {
         setTransactions(data.transactions);
         setNotifications(data.notifications);
         setProducts(data.products);
+        setTasks(data.tasks || []);
+        setRatings(data.ratings || []);
+        if (data.role && data.branchName) {
+            setUserProfile((prev: any) => ({...prev, role: data.role, branchName: data.branchName}));
+        }
       }
     } catch (err) {}
-  };
-
-  const handleCredentialsLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoginError('');
-      setLoading(true);
-      
-      const res = await fetch(`${API_BASE}/bot/tma/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password, chatId, username: tgUsername })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setUserProfile(data.user);
-        setBalance(data.balance);
-        setIsAuthenticated(true);
-        await fetchTmaData(chatId);
-      } else {
-        setLoginError(data.message || 'Login yoki parol xato!');
-      }
-    } catch (err) {
-      setLoginError('Tarmoq xatoligi yuz berdi!');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleSharePhone = () => {
@@ -185,47 +157,27 @@ export default function App() {
                   style={{ width: 80, height: 80, margin: '0 auto', marginBottom: 16 }}
                 />
                 <Typography variant="h5" color="textPrimary" sx={{ fontWeight: 'bold' }}>EduCoin'ga xush kelibsiz</Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>Tizimga kirish uchun malumotlaringizni kiriting</Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
+                  Tizimdan foydalanish uchun bot orqali ro'yxatdan o'tishingiz yoki login qilishingiz kerak.
+                </Typography>
               </Box>
 
-              {loginError && (
-                <Paper elevation={0} sx={{ p: 2, mb: 3, bgcolor: '#FEF3F2', color: '#B42318', textAlign: 'center', border: '1px solid #FECDCA' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{loginError}</Typography>
-                </Paper>
-              )}
-
-              <form onSubmit={handleCredentialsLogin}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <TextField 
-                    label="Telefon yoki Email" 
-                    variant="outlined" 
-                    fullWidth 
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    required
-                  />
-                  <TextField 
-                    label="Parol" 
-                    type="password" 
-                    variant="outlined" 
-                    fullWidth 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <Button 
-                    type="submit" 
-                    variant="contained" 
-                    color="primary" 
-                    size="large" 
-                    fullWidth
-                    disabled={loading}
-                    sx={{ mt: 1, py: 1.5, fontSize: '1rem' }}
-                  >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : "Kirish va Bog'lash"}
-                  </Button>
-                </Box>
-              </form>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                size="large" 
+                fullWidth
+                onClick={() => {
+                  if ((window as any).Telegram?.WebApp) {
+                    (window as any).Telegram.WebApp.close();
+                  } else {
+                    window.location.href = "https://t.me/educoin_tma_bot";
+                  }
+                }}
+                sx={{ mt: 1, py: 1.5, fontSize: '1rem', borderRadius: '0.65rem', fontWeight: 'bold' }}
+              >
+                Bot orqali kirish
+              </Button>
             </motion.div>
           </Paper>
         </Box>
@@ -237,7 +189,7 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ pb: 7, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Header notifications={notifications} setActiveTab={setActiveTab} />
+        <Header notifications={notifications} setActiveTab={setActiveTab} userProfile={userProfile} />
         
         <Box component="main" sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
           <AnimatePresence mode="wait">
@@ -257,6 +209,7 @@ export default function App() {
                   setActiveTab={setActiveTab} 
                   quizAnswered={quizAnswered} 
                   claimDailyQuiz={claimDailyQuiz} 
+                  userProfile={userProfile}
                 />
               )}
               {activeTab === 'shop' && (
@@ -273,6 +226,12 @@ export default function App() {
               )}
               {activeTab === 'notifications' && (
                 <Notifications notifications={notifications} />
+              )}
+              {activeTab === 'tasks' && (
+                <Tasks tasks={tasks} />
+              )}
+              {activeTab === 'rating' && (
+                <Rating ratings={ratings} />
               )}
               {activeTab === 'profile' && (
                 <Profile 
@@ -291,7 +250,7 @@ export default function App() {
           </AnimatePresence>
         </Box>
 
-        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} role={userProfile?.role} />
       </Box>
     </ThemeProvider>
   );

@@ -1,15 +1,17 @@
 import React from 'react';
 import { AppBar, Toolbar, Box, Typography, IconButton, Badge } from '@mui/material';
 import { Bell } from 'lucide-react';
-import type { NotificationItem } from '../types';
+import type { NotificationItem, UserProfile } from '../types';
 
 interface HeaderProps {
   notifications: NotificationItem[];
-  setActiveTab: (tab: 'home' | 'shop' | 'reports' | 'notifications' | 'profile') => void;
+  setActiveTab: (tab: any) => void;
+  userProfile?: UserProfile;
 }
 
-export const Header: React.FC<HeaderProps> = ({ notifications, setActiveTab }) => {
+export const Header: React.FC<HeaderProps> = ({ notifications, setActiveTab, userProfile }) => {
   const hasUnread = notifications.some(n => n.unread || !n.isRead);
+  const subtitle = userProfile ? `${userProfile.branchName || 'Filial'} • ${userProfile.role}` : 'Kuting...';
 
   return (
     <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'primary.main', borderBottomLeftRadius: '1rem', borderBottomRightRadius: '1rem' }}>
@@ -22,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ notifications, setActiveTab }) =
           />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>EduCoin</Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Chilonzor Filiali • Student</Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>{subtitle}</Typography>
           </Box>
         </Box>
         
